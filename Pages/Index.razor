@@ -1,0 +1,92 @@
+﻿@page "/"
+
+@using Syncfusion.Blazor.Maps
+@using System.Collections.ObjectModel;
+@inject IJSRuntime JSRuntime
+@using System.Text.Json;
+
+<div>
+    <label for="source"><b>Source</b> :</label>
+    <input type="text" id="source" @bind-value="markerSource" />
+</div>
+<br />
+<div>
+    <label for="destination"><b>Destination</b> :</label>
+    <input type="text" id="destination" @bind-value="markerDestination" />
+</div>
+<br />
+
+<button @onclick="AddRoutes">Add Routes</button>
+
+<div>
+    <SfMaps ID="Maps">
+        <MapsZoomSettings Enable="true" MaxZoom="19" ShouldZoomInitially="true" EnablePanning="true">
+        </MapsZoomSettings>
+        <MapsLayers>
+            <MapsLayer UrlTemplate="https://tile.openstreetmap.org/level/tileX/tileY.png" TValue="string">
+                @if (Cities != null)
+                {
+                    <MapsMarkerSettings>
+                        <MapsMarker Visible="true" Height="20" Width="20" DataSource="Cities" TValue="MapMarker" Shape="MarkerType.Image" ImageUrl="https://blazor.syncfusion.com/demos/_content/blazor_server_common_net8/images/maps/ballon.png">
+                        </MapsMarker>
+                    </MapsMarkerSettings>
+                }
+                <MapsNavigationLines>
+                    @if (LatitudePoints.Count > 1 && LongitudePoints.Count > 1)
+                    {
+                        <MapsNavigationLine Visible="true" Angle="0" Color="black" Width="2" Latitude="@LatitudePoints.ToArray()" Longitude="@LongitudePoints.ToArray()"></MapsNavigationLine>
+                    }
+                </MapsNavigationLines>
+            </MapsLayer>
+        </MapsLayers>
+    </SfMaps>
+</div>
+<br />
+
+@code
+{
+    private string markerSource = string.Empty;
+    private string markerDestination = string.Empty;
+    public List<double> LatitudePoints = new List<double>();
+    public List<double> LongitudePoints = new List<double>();
+    private ObservableCollection<MapMarker> Cities = new ObservableCollection<MapMarker>();
+
+    public class MapMarker
+    {
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public string Name { get; set; }
+    }
+
+    public void ClearPoints()
+    {
+        Cities.Clear();
+        LatitudePoints.Clear();
+        LongitudePoints.Clear();
+    }
+
+    public async Task AddRoutes()
+    {
+        ClearPoints();
+        if (markerSource != string.Empty && markerDestination != string.Empty)
+        {
+            var response = await JSRuntime.InvokeAsync<JsonElement>("initMap", markerSource, markerDestination);
+            Cities.Add(new MapMarker
+                {
+                    Latitude = response.GetProperty("startLocation").GetProperty("latitude").GetDouble(),
+                    Longitude = response.GetProperty("startLocation").GetProperty("longitude").GetDouble()
+                });
+            Cities.Add(new MapMarker
+                {
+                    Latitude = response.GetProperty("endLocation").GetProperty("latitude").GetDouble(),
+                    Longitude = response.GetProperty("endLocation").GetProperty("longitude").GetDouble()
+                });
+            foreach (var point in response.GetProperty("path").EnumerateArray())
+            {
+                LatitudePoints.Add(point.GetProperty("latitude").GetDouble());
+                LongitudePoints.Add(point.GetProperty("longitude").GetDouble());
+            }
+
+        }
+    }
+}

@@ -49,16 +49,6 @@ dotnet run
 
 5. Add the required Google Maps Directions API key configuration and open the local URL displayed in the terminal.
 
-## Project Structure
-
-`Pages/Index.razor` — contains the Syncfusion Maps implementation, marker configuration, route rendering logic, and integration with route coordinate data.
-
-`Pages/_Host.cshtml` — hosts the Blazor Server application and contains Google Maps API configuration required by the sample.
-
-`App.razor` — configures application routing and root component rendering.
-
-`appsettings.json` — application configuration settings.
-
 ## Support and Feedback
 
 - For general product questions, visit the [Syncfusion Community Forum](https://www.syncfusion.com/forums) or [Syncfusion Support](https://www.syncfusion.com/support).
